@@ -121,7 +121,7 @@ class ChartingState extends MusicBeatState
 	/*
 	 * WILL BE THE CURRENT / LAST PLACED NOTE
 	**/
-	var curSelectedNote:Array<Dynamic> = null;
+	var curSelectedNote:Array<Dynamic>;
 
 	var tempBpm:Float = 0;
 
@@ -268,7 +268,7 @@ class ChartingState extends MusicBeatState
 			{name: "Section", label: 'Section'},
 			{name: "Note", label: 'Note'},
 			{name: "Events", label: 'Events'},
-			{name: "Charting", label: 'Charting'},
+			{name: "Charting", label: 'Charting'}
 		];
 
 		UI_box = new FlxUITabMenu(null, tabs, true);
@@ -276,7 +276,6 @@ class ChartingState extends MusicBeatState
 		UI_box.resize(300, 400);
 		UI_box.x = FlxG.width / 2 + GRID_SIZE / 2;
 		UI_box.y = 25;
-		UI_box.scrollFactor.set();
 
 		var text:String =
 		"W/S or Mouse Wheel - Change Conductor's strum time
@@ -308,7 +307,7 @@ class ChartingState extends MusicBeatState
 		addChartingUI();
 		updateHeads();
 		updateWaveform();
-		//UI_box.selected_tab = 4;
+		UI_box.selected_tab = 4;
 
 		add(curRenderedSustains);
 		add(curRenderedNotes);
@@ -573,13 +572,13 @@ class ChartingState extends MusicBeatState
 		tab_group_song.add(stageDropDown);
 
 		UI_box.addGroup(tab_group_song);
+		UI_box.scrollFactor.set();
 
 		FlxG.camera.follow(camPos);
 	}
 
 	var stepperLength:FlxUINumericStepper;
 	var check_mustHitSection:FlxUICheckBox;
-	var check_gfSection:FlxUICheckBox;
 	var check_changeBPM:FlxUICheckBox;
 	var stepperSectionBPM:FlxUINumericStepper;
 	var check_altAnim:FlxUICheckBox;
@@ -599,10 +598,6 @@ class ChartingState extends MusicBeatState
 		check_mustHitSection = new FlxUICheckBox(10, 30, null, null, "Must hit section", 100);
 		check_mustHitSection.name = 'check_mustHit';
 		check_mustHitSection.checked = _song.notes[curSection].mustHitSection;
-
-		check_gfSection = new FlxUICheckBox(130, 30, null, null, "GF section", 100);
-		check_gfSection.name = 'check_gf';
-		check_gfSection.checked = _song.notes[curSection].gfSection;
 		// _song.needsVoices = check_mustHit.checked;
 
 		check_altAnim = new FlxUICheckBox(10, 60, null, null, "Alt Animation", 100);
@@ -695,7 +690,6 @@ class ChartingState extends MusicBeatState
 		tab_group_section.add(stepperLength);
 		tab_group_section.add(stepperSectionBPM);
 		tab_group_section.add(check_mustHitSection);
-		tab_group_section.add(check_gfSection);
 		tab_group_section.add(check_altAnim);
 		tab_group_section.add(check_changeBPM);
 		tab_group_section.add(copyButton);
@@ -1016,12 +1010,6 @@ class ChartingState extends MusicBeatState
 					updateGrid();
 					updateHeads();
 
-				case 'GF section':
-					_song.notes[curSection].gfSection = check.checked;
-
-					updateGrid();
-					updateHeads();
-
 				case 'Change BPM':
 					_song.notes[curSection].changeBPM = check.checked;
 					FlxG.log.add('changed bpm shit');
@@ -1169,7 +1157,7 @@ class ChartingState extends MusicBeatState
 		{
 			if (FlxG.mouse.overlaps(curRenderedNotes))
 			{
-				curRenderedNotes.forEachAlive(function(note:Note)
+				curRenderedNotes.forEach(function(note:Note)
 				{
 					if (FlxG.mouse.overlaps(note))
 					{
@@ -1393,6 +1381,7 @@ class ChartingState extends MusicBeatState
 		var playedSound:Array<Bool> = [false, false, false, false]; //Prevents earrape GF ahegao sounds
 		curRenderedNotes.forEachAlive(function(note:Note) {
 			note.alpha = 1;
+			#if !html5 //Fixes issues where notes would disappear while a note is selected
 			if(curSelectedNote != null) {
 				var noteDataToCheck:Int = note.noteData;
 				if(noteDataToCheck > -1 && note.mustPress != _song.notes[curSection].mustHitSection) noteDataToCheck += 4;
@@ -1404,6 +1393,7 @@ class ChartingState extends MusicBeatState
 					note.color = FlxColor.fromRGBFloat(colorVal, colorVal, colorVal, 0.999); //Alpha can't be 100% or the color won't be updated for some reason, guess i will die
 				}
 			}
+			#end
 
 			if(note.strumTime <= Conductor.songPosition) {
 				note.alpha = 0.4;
@@ -1683,7 +1673,6 @@ class ChartingState extends MusicBeatState
 
 		stepperLength.value = sec.lengthInSteps;
 		check_mustHitSection.checked = sec.mustHitSection;
-		check_gfSection.checked = sec.gfSection;
 		check_altAnim.checked = sec.altAnim;
 		check_changeBPM.checked = sec.changeBPM;
 		stepperSectionBPM.value = sec.bpm;
@@ -1700,13 +1689,11 @@ class ChartingState extends MusicBeatState
 		{
 			leftIcon.changeIcon(healthIconP1);
 			rightIcon.changeIcon(healthIconP2);
-			if (_song.notes[curSection].gfSection) leftIcon.changeIcon('gf');
 		}
 		else
 		{
 			leftIcon.changeIcon(healthIconP2);
 			rightIcon.changeIcon(healthIconP1);
-			if (_song.notes[curSection].gfSection) leftIcon.changeIcon('gf');
 		}
 	}
 
@@ -1759,7 +1746,7 @@ class ChartingState extends MusicBeatState
 				value1InputText.text = curSelectedNote[3];
 				value2InputText.text = curSelectedNote[4];
 			}
-			strumTimeInputText.text = '' + curSelectedNote[0];
+			strumTimeInputText.text = curSelectedNote[0];
 		}
 	}
 
@@ -1909,7 +1896,6 @@ class ChartingState extends MusicBeatState
 			bpm: _song.bpm,
 			changeBPM: false,
 			mustHitSection: true,
-			gfSection: false,
 			sectionNotes: [],
 			typeOfSection: 0,
 			altAnim: false
@@ -1925,7 +1911,7 @@ class ChartingState extends MusicBeatState
 
 		for (i in _song.notes[curSection].sectionNotes)
 		{
-			if (i != curSelectedNote && i.length > 2 && i[0] == note.strumTime && i[1] == noteDataToCheck)
+			if (i.length > 2 && i[0] == note.strumTime && i[1] == noteDataToCheck)
 			{
 				curSelectedNote = i;
 				break;
@@ -1989,7 +1975,7 @@ class ChartingState extends MusicBeatState
 		}
 
 		trace(noteData + ', ' + noteStrum + ', ' + curSection);
-		strumTimeInputText.text = '' + curSelectedNote[0];
+		strumTimeInputText.text = curSelectedNote[0];
 
 		updateGrid();
 		updateNoteUI();
@@ -2117,7 +2103,6 @@ class ChartingState extends MusicBeatState
 				lengthInSteps: 16,
 				typeOfSection: 0,
 				mustHitSection: false,
-				gfSection: false,
 				bpm: 0,
 				changeBPM: false,
 				altAnim: false

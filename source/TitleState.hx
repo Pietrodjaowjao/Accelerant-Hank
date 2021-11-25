@@ -52,9 +52,6 @@ class TitleState extends MusicBeatState
 	var easterEggKeyCombination:Array<FlxKey> = [FlxKey.B, FlxKey.B]; //bb stands for bbpanzu cuz he wanted this lmao
 	var lastKeysPressed:Array<FlxKey> = [];
 
-	var mustUpdate:Bool = false;
-	public static var updateVersion:String = '';
-
 	override public function create():Void
 	{
 		#if (polymod && !html5)
@@ -70,32 +67,9 @@ class TitleState extends MusicBeatState
 				polymod.Polymod.init({modRoot: "mods", dirs: folders});
 			}
 		}
-		#end
-		
-		#if CHECK_FOR_UPDATES
-		if(!closedState) {
-			trace('checking for update');
-			var http = new haxe.Http("https://raw.githubusercontent.com/ShadowMario/FNF-PsychEngine/main/gitVersion.txt");
-			
-			http.onData = function (data:String)
-			{
-				updateVersion = data.split('\n')[0].trim();
-				var curVersion:String = MainMenuState.psychEngineVersion.trim();
-				trace('version online: ' + updateVersion + ', your version: ' + curVersion);
-				if(updateVersion != curVersion) {
-					trace('versions arent matching!');
-					mustUpdate = true;
-				}
-			}
-			
-			http.onError = function (error) {
-				trace('error: $error');
-			}
-			
-			http.request();
-		}
-		#end
 
+		//Gonna finish this later, probably
+		#end
 		FlxG.game.focusLostFramerate = 60;
 		FlxG.sound.muteKeys = muteKeys;
 		FlxG.sound.volumeDownKeys = volumeDownKeys;
@@ -202,19 +176,19 @@ class TitleState extends MusicBeatState
 		// logoBl.color = FlxColor.BLACK;
 
 		swagShader = new ColorSwap();
-		/*if(!FlxG.save.data.psykaEasterEgg || !easterEggEnabled) {*/
+		if(!FlxG.save.data.psykaEasterEgg || !easterEggEnabled) {
 			gfDance = new FlxSprite(FlxG.width * 0.4, FlxG.height * 0.07);
 			gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
 			gfDance.animation.addByIndices('danceLeft', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
 			gfDance.animation.addByIndices('danceRight', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
-		/*}
+		}
 		else //Psyka easter egg
 		{
 			gfDance = new FlxSprite(FlxG.width * 0.4, FlxG.height * 0.04);
 			gfDance.frames = Paths.getSparrowAtlas('psykaDanceTitle');
 			gfDance.animation.addByIndices('danceLeft', 'psykaDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
 			gfDance.animation.addByIndices('danceRight', 'psykaDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
-		}*/
+		}
 		gfDance.antialiasing = ClientPrefs.globalAntialiasing;
 		add(gfDance);
 		gfDance.shader = swagShader.shader;
@@ -340,11 +314,7 @@ class TitleState extends MusicBeatState
 
 				new FlxTimer().start(1, function(tmr:FlxTimer)
 				{
-					if (mustUpdate) {
-						MusicBeatState.switchState(new OutdatedState());
-					} else {
-						MusicBeatState.switchState(new MainMenuState());
-					}
+					MusicBeatState.switchState(new MainMenuState());
 					closedState = true;
 				});
 				// FlxG.sound.play(Paths.music('titleShoot'), 0.7);
@@ -369,7 +339,7 @@ class TitleState extends MusicBeatState
 							}
 						}
 
-						/*if(!isDifferent) {
+						if(!isDifferent) {
 							trace('Easter egg triggered!');
 							FlxG.save.data.psykaEasterEgg = !FlxG.save.data.psykaEasterEgg;
 							FlxG.sound.play(Paths.sound('secretSound'));
@@ -388,7 +358,7 @@ class TitleState extends MusicBeatState
 							lastKeysPressed = [];
 							closedState = true;
 							transitioning = true;
-						}*/
+						}
 					}
 				}
 			}
@@ -440,7 +410,6 @@ class TitleState extends MusicBeatState
 		}
 	}
 
-	private var sickBeats:Int = 0; //Basically curBeat but won't be skipped if you hold the tab or resize the screen
 	private static var closedState:Bool = false;
 	override function beatHit()
 	{
@@ -459,16 +428,14 @@ class TitleState extends MusicBeatState
 		}
 
 		if(!closedState) {
-			sickBeats++;
-			switch (sickBeats)
+			switch (curBeat)
 			{
 				case 1:
-					createCoolText(['Psych Engine by'], 15);
+					createCoolText(['Psych Engine by'], 45);
 				// credTextShit.visible = true;
 				case 3:
-					addMoreText('Shadow Mario', 15);
-					addMoreText('RiverOaken', 15);
-					addMoreText('bb-panzu', 15);
+					addMoreText('Shadow Mario', 45);
+					addMoreText('RiverOaken', 45);
 				// credTextShit.text += '\npresent...';
 				// credTextShit.addText();
 				case 4:

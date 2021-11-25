@@ -65,8 +65,6 @@ class Character extends FlxSprite
 	public var positionArray:Array<Float> = [0, 0];
 	public var cameraPosition:Array<Float> = [0, 0];
 
-	public var hasMissAnimations:Bool = false;
-
 	//Used on Character Editor
 	public var imageFile:String = '';
 	public var jsonScale:Float = 1;
@@ -116,25 +114,11 @@ class Character extends FlxSprite
 				#else
 				var rawJson = Assets.getText(path);
 				#end
-				
-				var json:CharacterFile = cast Json.parse(rawJson);
-				
-				#if MODS_ALLOWED
-				var path2:String = Paths.modFolders('images/' + json.image + '.txt');
-				if (!FileSystem.exists(path2)) {
-					path2 = Paths.getPreloadPath('images/' + json.image + '.txt');
-				}
 
-				if (!FileSystem.exists(path2))
-				#else
-				if(Assets.exists(Paths.getPath('images/' + json.image + '.txt', TEXT)))
-				#end
-				//bozo forgot about the packer shits : P
-				{
+				var json:CharacterFile = cast Json.parse(rawJson);
+				if(Assets.exists(Paths.getPath('images/' + json.image + '.txt', TEXT))) {
 					frames = Paths.getPackerAtlas(json.image);
-				}
-				else
-				{
+				} else {
 					frames = Paths.getSparrowAtlas(json.image);
 				}
 				imageFile = json.image;
@@ -187,7 +171,6 @@ class Character extends FlxSprite
 		}
 		originalFlipX = flipX;
 
-		if(animOffsets.exists('singLEFTmiss') || animOffsets.exists('singDOWNmiss') || animOffsets.exists('singUPmiss') || animOffsets.exists('singRIGHTmiss')) hasMissAnimations = true;
 		recalculateDanceIdle();
 		dance();
 
