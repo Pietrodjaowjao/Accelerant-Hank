@@ -19,7 +19,6 @@ import flixel.util.FlxColor;
 import lime.app.Application;
 import Achievements;
 import editors.MasterEditorMenu;
-import flixel.input.keyboard.FlxKey;
 
 using StringTools;
 
@@ -32,12 +31,11 @@ class MainMenuState extends MusicBeatState
 	private var camGame:FlxCamera;
 	private var camAchievement:FlxCamera;
 	
-	var optionShit:Array<String> = ['challenge', 'options'];
+	var optionShit:Array<String> = ['story_mode', 'freeplay', #if ACHIEVEMENTS_ALLOWED 'awards', #end 'credits', #if !switch 'donate', #end 'options'];
 
 	var magenta:FlxSprite;
 	var camFollow:FlxObject;
 	var camFollowPos:FlxObject;
-	var debugKeys:Array<FlxKey>;
 
 	override function create()
 	{
@@ -45,8 +43,6 @@ class MainMenuState extends MusicBeatState
 		// Updating Discord Rich Presence
 		DiscordClient.changePresence("In the Menus", null);
 		#end
-
-		debugKeys = ClientPrefs.copyKey(ClientPrefs.keyBinds.get('debug_2'));
 
 		camGame = new FlxCamera();
 		camAchievement = new FlxCamera();
@@ -126,13 +122,10 @@ class MainMenuState extends MusicBeatState
 		#if ACHIEVEMENTS_ALLOWED
 		Achievements.loadAchievements();
 		var leDate = Date.now();
-		if (leDate.getDay() == 5 && leDate.getHours() >= 18) {
-			var achieveID:Int = Achievements.getAchievementIndex('friday_night_play');
-			if(!Achievements.isAchievementUnlocked(Achievements.achievementsStuff[achieveID][2])) { //It's a friday night. WEEEEEEEEEEEEEEEEEE
-				Achievements.achievementsMap.set(Achievements.achievementsStuff[achieveID][2], true);
-				giveAchievement();
-				ClientPrefs.saveSettings();
-			}
+		if (!Achievements.achievementsUnlocked[achievementID][1] && leDate.getDay() == 5 && leDate.getHours() >= 18) { //It's a friday night. WEEEEEEEEEEEEEEEEEE
+			Achievements.achievementsUnlocked[achievementID][1] = true;
+			giveAchievement();
+			ClientPrefs.saveSettings();
 		}
 		#end
 
@@ -141,10 +134,11 @@ class MainMenuState extends MusicBeatState
 
 	#if ACHIEVEMENTS_ALLOWED
 	// Unlocks "Freaky on a Friday Night" achievement
+	var achievementID:Int = 0;
 	function giveAchievement() {
-		add(new AchievementObject('friday_night_play', camAchievement));
+		add(new AchievementObject(achievementID, camAchievement));
 		FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
-		trace('Giving achievement "friday_night_play"');
+		trace('Giving achievement ' + achievementID);
 	}
 	#end
 
@@ -214,7 +208,7 @@ class MainMenuState extends MusicBeatState
 
 								switch (daChoice)
 								{
-									case 'challenge':
+									case 'story_mode':
 										MusicBeatState.switchState(new StoryMenuState());
 									case 'freeplay':
 										MusicBeatState.switchState(new FreeplayState());
@@ -223,7 +217,7 @@ class MainMenuState extends MusicBeatState
 									case 'credits':
 										MusicBeatState.switchState(new CreditsState());
 									case 'options':
-										MusicBeatState.switchState(new options.OptionsState());
+										MusicBeatState.switchState(new OptionsState());
 								}
 							});
 						}
@@ -231,7 +225,7 @@ class MainMenuState extends MusicBeatState
 				}
 			}
 			#if desktop
-			else if (FlxG.keys.anyJustPressed(debugKeys))
+			else if (FlxG.keys.justPressed.SEVEN)
 			{
 				selectedSomethin = true;
 				MusicBeatState.switchState(new MasterEditorMenu());
@@ -244,7 +238,7 @@ class MainMenuState extends MusicBeatState
 		menuItems.forEach(function(spr:FlxSprite)
 		{
 			spr.screenCenter(X);
-            spr.x -= 300;
+			spr.x -= 300;
 		});
 	}
 
