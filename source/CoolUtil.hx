@@ -20,7 +20,7 @@ class CoolUtil
 	public static var difficultyStuff:Array<Dynamic> = [
 		['Baby', '-baby'],
 		['Normal', ''],
-		['Hard', '-hard']
+		['Hard', '-hard'],
 		['Fucked', '-fucked']
 	];
 
